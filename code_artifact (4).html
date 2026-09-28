@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중1 수학: 원과 부채꼴의 성질 및 넓이 탐구 실험실</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            touch-action: manipulation;
+        }
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+        }
+        canvas {
+            touch-action: none;
+        }
+        input[type=range] {
+            height: 8px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            width: 22px;
+            height: 22px;
+        }
+        .pulse-glow {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-between items-center gap-3">
+            <div class="flex items-center justify-between w-full lg:w-auto">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-amber-400 text-indigo-950 p-2.5 rounded-2xl shadow-inner font-black text-xl">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-base sm:text-xl font-extrabold leading-tight">중1 수학: 원과 부채꼴 탐구</h1>
+                            <span id="user-role-badge" class="bg-amber-400 text-indigo-950 text-[10px] font-black px-2 py-0.5 rounded-full">학생 조작용</span>
+                        </div>
+                        <p class="text-[11px] text-indigo-100">손으로 직접 만지며 배우는 인터랙티브 수학 실험실</p>
+                    </div>
+                </div>
+
+                <!-- QR Modal Trigger Button (Mobile) -->
+                <button onclick="openClassroomQRModal()" class="lg:hidden bg-amber-400 hover:bg-amber-300 text-indigo-950 px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md pulse-glow">
+                    <i class="fa-solid fa-qrcode text-sm"></i> 학생 접속 QR
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+                <nav class="flex gap-1.5 bg-indigo-800/70 p-1.5 rounded-2xl text-xs sm:text-sm font-bold w-full lg:w-auto shrink-0 justify-start sm:justify-center">
+                    <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn active px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-chart-line"></i> 1. 정비례 탐구
+                    </button>
+                    <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-calculator text-emerald-300"></i> 2. 부채꼴 공식
+                    </button>
+                    <button onclick="switchTab('tab3')" id="btn-tab3" class="tab-btn px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-scissors text-amber-300"></i> 3. 조각 펼치기
+                    </button>
+                    <button onclick="switchTab('tab4')" id="btn-tab4" class="tab-btn px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shrink-0 bg-indigo-900/50">
+                        <i class="fa-solid fa-users text-sky-300"></i> 4. 실시간 현황
+                    </button>
+                </nav>
+
+                <!-- QR Modal Trigger Button (Desktop) -->
+                <button onclick="openClassroomQRModal()" class="hidden lg:flex bg-amber-400 hover:bg-amber-300 text-indigo-950 px-4 py-2.5 rounded-xl text-xs font-black transition items-center gap-2 shrink-0 shadow-md pulse-glow">
+                    <i class="fa-solid fa-qrcode text-base"></i> 학생 접속 QR
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 space-y-6">
+
+        <!-- Student Nickname Input Bar -->
+        <div id="nickname-bar" class="bg-indigo-50 border border-indigo-200 p-3 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-indigo-900 w-full sm:w-auto">
+                <i class="fa-solid fa-user-gear text-indigo-600 text-base"></i>
+                <span>학생 닉네임 설정:</span>
+                <input type="text" id="student-nickname" placeholder="이름/번호 입력 (예: 10101 홍길동)" class="bg-white border border-indigo-300 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:w-60" onchange="saveNickname()">
+            </div>
+            <div class="text-[11px] text-indigo-700 font-medium text-right w-full sm:w-auto">
+                💡 닉네임을 작성하고 문제를 풀면 교사 대시보드에 실시간 제출됩니다.
+            </div>
+        </div>
+
+        <section id="tab1" class="tab-content block space-y-6">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-1">
+                    <h2 class="text-base sm:text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">1단계</span>
+                        중심각의 크기와 호의 길이, 넓이의 정비례 탐구
+                    </h2>
+                    <button onclick="readText('한 원에서 부채꼴의 중심각의 크기가 2배, 3배로 커지면 호의 길이와 넓이도 2배, 3배로 정비례하여 커집니다.')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-volume-high"></i> 설명 음성 듣기
+                    </button>
+                </div>
+                <p class="text-slate-600 text-xs sm:text-sm">
+                    슬라이더와 배수 버튼을 직접 터치해보세요. 중심각이 <span class="font-bold text-indigo-600">2배, 3배, 4배...</span> 커짐에 따라 부채꼴의 <span class="font-bold text-indigo-600">호의 길이와 넓이도 정비례</span>하는 모습을 관찰할 수 있습니다.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <!-- Controls & Canvas -->
+                <div class="lg:col-span-6 bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">반지름 <i class="font-serif">r</i> = <span id="t1-radius-val" class="text-indigo-600 font-black">6 cm</span></label>
+                            <input type="range" id="t1-radius" min="2" max="10" value="6" step="1" class="w-full accent-indigo-600 cursor-pointer" oninput="updateTab1()">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">기본 중심각 = <span id="t1-angle-val" class="text-indigo-600 font-black">30°</span></label>
+                            <input type="range" id="t1-angle" min="15" max="90" value="30" step="15" class="w-full accent-indigo-600 cursor-pointer" oninput="updateTab1()">
+                        </div>
+                    </div>
+
+                    <!-- Multiplier selection buttons -->
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <label class="block text-xs font-bold text-slate-700 mb-2 text-center">중심각 배율 선택 (배수 조작)</label>
+                        <div class="grid grid-cols-4 gap-2 text-xs sm:text-sm">
+                            <button id="t1-m1" onclick="setTab1Multiplier(1)" class="py-2.5 rounded-xl border border-indigo-500 bg-indigo-600 font-black text-white shadow-sm transition">1배</button>
+                            <button id="t1-m2" onclick="setTab1Multiplier(2)" class="py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 transition">2배</button>
+                            <button id="t1-m3" onclick="setTab1Multiplier(3)" class="py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 transition">3배</button>
+                            <button id="t1-m4" onclick="setTab1Multiplier(4)" class="py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 transition">4배</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-2xl p-2 border border-slate-800 shadow-inner">
+                        <canvas id="canvasTab1" class="w-full h-[260px] sm:h-[280px] rounded-xl block"></canvas>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
+                    <div class="bg-indigo-50/90 p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-indigo-600 text-white text-xs px-3 py-1 rounded-lg font-bold">기준 부채꼴 (1배)</span>
+                            <span id="t1-base-angle" class="text-xs font-extrabold text-indigo-800">30°</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                                <span class="text-slate-500 block">호의 길이</span>
+                                <span id="t1-base-arc" class="font-black text-indigo-900 text-sm sm:text-base">1.00 π cm</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                                <span class="text-slate-500 block">부채꼴 넓이</span>
+                                <span id="t1-base-area" class="font-black text-indigo-900 text-sm sm:text-base">3.00 π cm²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50/90 p-4 rounded-2xl border border-amber-200 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-amber-500 text-white text-xs px-3 py-1 rounded-lg font-bold">변화된 부채꼴 (<span id="t1-multi-text">1</span>배)</span>
+                            <span id="t1-curr-angle" class="text-xs font-extrabold text-amber-800">30°</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
+                                <span class="text-slate-500 block">호의 길이</span>
+                                <span id="t1-curr-arc" class="font-black text-amber-900 text-sm sm:text-base">1.00 π cm</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-sm">
+                                <span class="text-slate-500 block">부채꼴 넓이</span>
+                                <span id="t1-curr-area" class="font-black text-amber-900 text-sm sm:text-base">3.00 π cm²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-xs sm:text-sm space-y-1.5">
+                        <h3 class="font-bold text-emerald-950 flex items-center gap-1.5">
+                            <i class="fa-solid fa-lightbulb text-emerald-600 text-base"></i> 탐구 요약
+                        </h3>
+                        <ul class="text-emerald-900 space-y-1 list-disc list-inside font-medium">
+                            <li>중심각이 <strong>n배</strong>가 되면, 호의 길이도 <strong>n배</strong>가 됩니다.</li>
+                            <li>중심각이 <strong>n배</strong>가 되면, 넓이도 <strong>n배</strong>가 됩니다.</li>
+                            <li><span class="text-rose-700 font-bold">(주의)</span> 현의 길이는 중심각에 정비례하지 않습니다!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-indigo-600"></i> 개념 확인 문제 (실시간 정답 제출)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Q1 -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <p class="text-xs sm:text-sm text-slate-800 font-medium">
+                            <strong>[문제 1]</strong> 중심각이 <strong>50°</strong>인 부채꼴의 호의 길이가 <strong>4 cm</strong>일 때, 중심각이 <strong>100°</strong>인 부채꼴의 호의 길이 <i class="font-serif">x</i> (cm)를 구하시오.
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="number" id="t1-q1-input" placeholder="정답 숫자 입력" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="checkT1Q1()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-indigo-700 transition">제출</button>
+                        </div>
+                        <div id="t1-q1-feedback" class="hidden text-xs p-2.5 rounded-lg font-medium"></div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <p class="text-xs sm:text-sm text-slate-800 font-medium">
+                            <strong>[문제 2]</strong> 중심각이 <strong>20°</strong>인 부채꼴의 넓이가 <strong>9 cm²</strong>일 때, 중심각이 <strong>80°</strong>인 부채꼴의 넓이 <i class="font-serif">x</i> (cm²)를 구하시오.
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="number" id="t1-q2-input" placeholder="정답 숫자 입력" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="checkT1Q2()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-indigo-700 transition">제출</button>
+                        </div>
+                        <div id="t1-q2-feedback" class="hidden text-xs p-2.5 rounded-lg font-medium"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab2" class="tab-content hidden space-y-6">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-base sm:text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+                    <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold">2단계</span>
+                    부채꼴은 전체 원의 얼마일까? (공식 직접 유도 체험)
+                </h2>
+                <p class="text-slate-600 text-xs sm:text-sm">
+                    부채꼴은 전체 원에서 <span class="font-bold text-indigo-600">중심각 비율(x / 360°)</span>만큼을 차지하는 부분입니다.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <div class="lg:col-span-6 bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">반지름 <i class="font-serif">r</i> = <span id="t2-r-val" class="text-indigo-600 font-black">6 cm</span></label>
+                            <input type="range" id="t2-radius" min="2" max="12" value="6" step="1" class="w-full accent-indigo-600 cursor-pointer" oninput="updateTab2()">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">중심각 <i class="font-serif">x</i> = <span id="t2-a-val" class="text-indigo-600 font-black">60°</span></label>
+                            <input type="range" id="t2-angle" min="15" max="345" value="60" step="15" class="w-full accent-indigo-600 cursor-pointer" oninput="updateTab2()">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-2xl p-2 border border-slate-800 shadow-inner">
+                        <canvas id="canvasTab2" class="w-full h-[260px] sm:h-[300px] rounded-xl block"></canvas>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 space-y-3">
+                    <div class="bg-white p-4 rounded-2xl border-2 border-indigo-400 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-indigo-600 text-white text-xs px-2.5 py-1 rounded-md font-bold">1단계: 원 전체 구하기</span>
+                            <span class="text-xs font-bold text-slate-500">전체 원 (360°)</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm bg-indigo-50/70 p-3 rounded-lg border border-indigo-100">
+                            <div>
+                                <span class="text-slate-500 block">원 둘레 ($2\pi r$)</span>
+                                <span id="t2-s1-circ" class="font-black text-indigo-900 text-sm sm:text-base">12π cm</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">원 넓이 ($\pi r^2$)</span>
+                                <span id="t2-s1-area" class="font-black text-indigo-900 text-sm sm:text-base">36π cm²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-amber-500 text-white text-xs px-2.5 py-1 rounded-md font-bold">2단계: 차지하는 비율</span>
+                            <span id="t2-frac-badge" class="text-xs font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md">60° / 360°</span>
+                        </div>
+                        <div class="text-center font-bold text-amber-950 bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs sm:text-sm" id="t2-ratio-calc">
+                            60° / 360° = 1/6
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border-2 border-emerald-500 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-md font-bold">3단계: (원 전체) × (비율)</span>
+                            <span class="text-xs font-bold text-emerald-700">부채꼴 공식 완성!</span>
+                        </div>
+                        
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-xs sm:text-sm space-y-1">
+                            <div class="font-bold text-emerald-950 flex justify-between">
+                                <span>호의 길이 (<i class="font-serif">l</i>)</span>
+                                <span id="t2-arc-final" class="text-emerald-700 font-black">2π cm</span>
+                            </div>
+                            <div id="t2-arc-formula" class="text-slate-600 font-mono text-xs">
+                                12π × (60 / 360) = 2π cm
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200 text-xs sm:text-sm space-y-1">
+                            <div class="font-bold text-indigo-950 flex justify-between">
+                                <span>부채꼴 넓이 (<i class="font-serif">S</i>)</span>
+                                <span id="t2-area-final" class="text-indigo-700 font-black">6π cm²</span>
+                            </div>
+                            <div id="t2-area-formula" class="text-slate-600 font-mono text-xs">
+                                36π × (60 / 360) = 6π cm²
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section Tab 2 -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-emerald-600"></i> 개념 확인 문제 (부채꼴 넓이 공식 $S = \frac{1}{2}rl$)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <p class="text-xs sm:text-sm text-slate-800 font-medium">
+                            <strong>[문제 1]</strong> 반지름 <i class="font-serif">r</i> = <strong>6 cm</strong>, 호의 길이 <i class="font-serif">l</i> = <strong>8 cm</strong>인 부채꼴의 넓이 <i class="font-serif">S</i> (cm²)를 구하시오.
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="number" id="t2-q1-input" placeholder="정답 입력" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button onclick="checkT2Q1()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-700 transition">제출</button>
+                        </div>
+                        <div id="t2-q1-feedback" class="hidden text-xs p-2.5 rounded-lg font-medium"></div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <p class="text-xs sm:text-sm text-slate-800 font-medium">
+                            <strong>[문제 2]</strong> 반지름 <i class="font-serif">r</i> = <strong>5 cm</strong>, 넓이 = <strong>15π cm²</strong>인 부채꼴의 호의 길이는 몇 <strong>π cm</strong> 일까요? (숫자만 입력)
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="number" id="t2-q2-input" step="0.1" placeholder="숫자만 입력" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button onclick="checkT2Q2()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-700 transition">제출</button>
+                        </div>
+                        <div id="t2-q2-feedback" class="hidden text-xs p-2.5 rounded-lg font-medium"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab3" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base sm:text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+                        <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">3단계</span>
+                        부채꼴 조각이 한 조각씩 날아가 직사각형 만들기
+                    </h2>
+                    <p class="text-slate-600 text-xs sm:text-sm">
+                        부채꼴을 잘게 잘라 교대로 세우면 <span class="font-bold text-indigo-600">직사각형</span> 모양이 완성되는 과정을 관찰해봅시다!
+                    </p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-2.5 px-4 rounded-2xl text-center min-w-[170px]">
+                    <span class="text-xs text-amber-800 font-bold block">핵심 공식</span>
+                    <span class="text-base sm:text-xl font-black text-amber-950"><i class="font-serif">S</i> = ½ <i class="font-serif">r</i> <i class="font-serif">l</i></span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 items-center">
+                    <div>
+                        <label for="t3-slices" class="block text-xs font-bold text-slate-700 mb-1">조각 개수 (<i class="font-serif">N</i>등분)</label>
+                        <select id="t3-slices" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-slate-800 text-xs sm:text-sm" onchange="resetAndDrawTab3()">
+                            <option value="4">4 조각</option>
+                            <option value="8" selected>8 조각</option>
+                            <option value="16">16 조각</option>
+                            <option value="32">32 조각</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="t3-radius" class="block text-xs font-bold text-slate-700 mb-1">반지름 <i class="font-serif">r</i> (cm)</label>
+                        <input type="number" id="t3-radius" min="2" max="10" value="6" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-slate-800 text-xs sm:text-sm" onchange="resetAndDrawTab3()">
+                    </div>
+
+                    <div>
+                        <label for="t3-angle" class="block text-xs font-bold text-slate-700 mb-1">중심각 <i class="font-serif">x</i> (°)</label>
+                        <input type="number" id="t3-angle" min="30" max="360" value="120" step="10" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-slate-800 text-xs sm:text-sm" onchange="resetAndDrawTab3()">
+                    </div>
+
+                    <div class="col-span-2 sm:col-span-1 lg:col-span-2 flex items-end">
+                        <button onclick="toggleTab3Animation()" id="t3-anim-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-sm text-xs sm:text-sm">
+                            <i id="t3-play-icon" class="fa-solid fa-play"></i>
+                            <span id="t3-play-text">한 조각씩 날아가기 시작</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-1 space-y-1">
+                    <div class="flex justify-between text-xs text-slate-700 font-bold">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-chart-pie text-indigo-500"></i> 부채꼴</span>
+                        <span class="text-indigo-600">이동 진행률: <span id="t3-progress-pct" class="font-black text-sm">0</span>%</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-vector-square text-emerald-500"></i> 직사각형</span>
+                    </div>
+                    <input type="range" id="t3-progress" min="0" max="100" value="0" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="drawTab3()">
+                </div>
+
+                <div class="relative w-full bg-slate-900 rounded-2xl p-2 sm:p-4 overflow-hidden border border-slate-800 shadow-inner min-h-[360px] sm:min-h-[420px] flex items-center justify-center">
+                    <canvas id="canvasTab3" class="w-full h-full block rounded-xl"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab4" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-base sm:text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-xs font-bold">4단계</span>
+                        실시간 학생 제출 대시보드
+                    </h2>
+                    <p class="text-slate-600 text-xs sm:text-sm">
+                        학생들이 탐구 문제를 풀고 제출한 현황이 실시간으로 동기화되어 표기됩니다.
+                    </p>
+                </div>
+                <button onclick="fetchQuizResponses()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-rotate"></i> 수동 새로고침
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-slate-500 text-xs font-bold block mb-1">총 제출 인원</span>
+                    <span id="stat-total-submissions" class="text-3xl font-black text-indigo-600">0 명</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-slate-500 text-xs font-bold block mb-1">1단계 문제 정답률</span>
+                    <span id="stat-t1-acc" class="text-3xl font-black text-emerald-600">- %</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-slate-500 text-xs font-bold block mb-1">2단계 문제 정답률</span>
+                    <span id="stat-t2-acc" class="text-3xl font-black text-amber-600">- %</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs sm:text-sm text-slate-700 flex justify-between items-center">
+                    <span><i class="fa-solid fa-list-check text-indigo-600"></i> 학생 제출 기록</span>
+                    <span class="text-slate-400 font-normal text-xs">최신순 표기</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">학생 닉네임</th>
+                                <th class="p-3">문제 번호</th>
+                                <th class="p-3">제출한 답</th>
+                                <th class="p-3">정답 여부</th>
+                                <th class="p-3">제출 시각</th>
+                            </tr>
+                        </thead>
+                        <tbody id="response-table-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-slate-400 font-medium">아직 제출된 기록이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="classroom-qr-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden transition-opacity duration-200" onclick="if(event.target === this) closeClassroomQRModal()">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative text-center">
+            <button onclick="closeClassroomQRModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-2 text-xl font-bold">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div>
+                <span class="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-full inline-block mb-2">학생 조작 화면 연결</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900">📱 카메라로 QR을 스캔하세요!</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1">스캔 즉시 부채꼴 탐구 조작 창이 열립니다.</p>
+            </div>
+
+            <!-- Big Display QR Container -->
+            <div class="flex flex-col items-center justify-center bg-slate-50 p-6 rounded-2xl border-2 border-indigo-100">
+                <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-200 relative mb-3">
+                    <img id="big-qr-img" src="" alt="Classroom QR Code" class="w-52 h-52 sm:w-64 sm:h-64 object-contain">
+                </div>
+                <div id="qr-status-msg" class="text-xs text-indigo-700 font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-wifi"></i> 연결 준비 완료
+                </div>
+            </div>
+
+            <!-- URL Setup Bar -->
+            <div class="space-y-2 text-left">
+                <label class="block text-xs font-bold text-slate-700">웹사이트 접속 주소 (자동 생성 또는 직접 수정)</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="target-url-input" placeholder="https://your-username.github.io/sector-math-app/" class="flex-1 bg-slate-100 border border-slate-300 text-slate-800 text-xs sm:text-sm font-mono rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500" oninput="onTargetUrlChange()">
+                    <button onclick="copyTargetUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-4 py-2.5 rounded-xl font-bold transition shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-copy"></i> 복사
+                    </button>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-[11px] text-amber-900 space-y-1">
+                    <p class="font-bold"><i class="fa-solid fa-circle-info"></i> 학생 접속 안내</p>
+                    <p>GitHub Pages 등에 배포된 실제 URL을 위 입력창에 넣으시면 학생들이 즉시 스캔하여 접속할 수 있는 QR 코드가 자동으로 생성됩니다.</p>
+                </div>
+                <div id="target-copy-toast" class="hidden text-xs text-emerald-600 font-bold text-center">
+                    <i class="fa-solid fa-check"></i> 주소가 클립보드에 복사되었습니다!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sector-math-app';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                            currentUser = cred.user;
+                        } else {
+                            const cred = await signInAnonymously(auth);
+                            currentUser = cred.user;
+                        }
+                        window.db = db;
+                        window.currentUser = currentUser;
+                        window.appId = appId;
+                        window.firestoreCollection = collection;
+                        window.firestoreAddDoc = addDoc;
+                        window.firestoreOnSnapshot = onSnapshot;
+
+                        fetchQuizResponses();
+                    } catch (e) {
+                        console.log("Firebase auth warning:", e);
+                    }
+                };
+                initAuth();
+            }
+        } catch (err) {
+            console.log("Running in local mode without Firebase.");
+        }
+    </script>
+
+    <script>
+        let currentTab = 'tab1';
+        let tab1Multiplier = 1;
+        let tab3AnimId = null;
+        let tab3IsAnimating = false;
+
+        window.addEventListener('load', () => {
+            setupCanvasResizing();
+            updateTab1();
+            updateTab2();
+            resetAndDrawTab3();
+
+            const savedNick = localStorage.getItem('student_nickname');
+            if (savedNick) {
+                document.getElementById('student-nickname').value = savedNick;
+            }
+
+            const currentUrl = window.location.href;
+            const targetInput = document.getElementById('target-url-input');
+            if (currentUrl && !currentUrl.startsWith('about:') && !currentUrl.startsWith('blob:') && !currentUrl.includes('srcdoc')) {
+                targetInput.value = currentUrl;
+            }
+        });
+
+        function setupCanvasResizing() {
+            window.addEventListener('resize', () => {
+                if (currentTab === 'tab1') updateTab1();
+                else if (currentTab === 'tab2') updateTab2();
+                else if (currentTab === 'tab3') drawTab3();
+            });
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+
+            if (tab3IsAnimating && tabId !== 'tab3') {
+                toggleTab3Animation();
+            }
+
+            setTimeout(() => {
+                if (tabId === 'tab1') updateTab1();
+                else if (tabId === 'tab2') updateTab2();
+                else if (tabId === 'tab3') drawTab3();
+                else if (tabId === 'tab4') fetchQuizResponses();
+            }, 50);
+        }
+
+        function readText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ko-KR';
+                utterance.rate = 0.95;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function saveNickname() {
+            const nick = document.getElementById('student-nickname').value.trim();
+            if (nick) {
+                localStorage.setItem('student_nickname', nick);
+            }
+        }
+
+        function setTab1Multiplier(m) {
+            tab1Multiplier = m;
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`t1-m${i}`);
+                if (i === m) {
+                    btn.className = 'py-2.5 rounded-xl border border-indigo-500 bg-indigo-600 font-black text-white shadow-sm transition';
+                } else {
+                    btn.className = 'py-2.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-50 transition';
+                }
+            }
+            updateTab1();
+        }
+
+        function updateTab1() {
+            const r = parseFloat(document.getElementById('t1-radius').value);
+            const baseAngle = parseFloat(document.getElementById('t1-angle').value);
+
+            document.getElementById('t1-radius-val').innerText = `${r} cm`;
+            document.getElementById('t1-angle-val').innerText = `${baseAngle}°`;
+            document.getElementById('t1-base-angle').innerText = `${baseAngle}°`;
+
+            const baseArc = (2 * Math.PI * r * (baseAngle / 360)).toFixed(2);
+            const baseArea = (Math.PI * r * r * (baseAngle / 360)).toFixed(2);
+            document.getElementById('t1-base-arc').innerText = `${baseArc} π cm`;
+            document.getElementById('t1-base-area').innerText = `${baseArea} π cm²`;
+
+            const currAngle = baseAngle * tab1Multiplier;
+            const currArc = (2 * Math.PI * r * (currAngle / 360)).toFixed(2);
+            const currArea = (Math.PI * r * r * (currAngle / 360)).toFixed(2);
+
+            document.getElementById('t1-multi-text').innerText = tab1Multiplier;
+            document.getElementById('t1-curr-angle').innerText = `${currAngle}°`;
+            document.getElementById('t1-curr-arc').innerText = `${currArc} π cm`;
+            document.getElementById('t1-curr-area').innerText = `${currArea} π cm²`;
+
+            drawTab1Canvas(r, baseAngle, tab1Multiplier);
+        }
+
+        function drawTab1Canvas(r, baseAngle, multiplier) {
+            const canvas = document.getElementById('canvasTab1');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            ctx.clearRect(0, 0, w, h);
+
+            const cx = w / 2;
+            const cy = h / 2 + 15;
+            const drawRadius = Math.min(w, h) * 0.35;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, drawRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const startRad = -Math.PI / 2;
+            const currAngle = baseAngle * multiplier;
+            const endRad = startRad + (currAngle * Math.PI / 180);
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, drawRadius, startRad, endRad);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            for (let i = 1; i < multiplier; i++) {
+                const subRad = startRad + (baseAngle * i * Math.PI / 180);
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + drawRadius * Math.cos(subRad), cy + drawRadius * Math.sin(subRad));
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([3, 3]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function checkT1Q1() {
+            const input = document.getElementById('t1-q1-input').value.trim();
+            const feedback = document.getElementById('t1-q1-feedback');
+            const isCorrect = parseInt(input, 10) === 8;
+
+            feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+            if (isCorrect) {
+                feedback.classList.add('bg-emerald-100', 'text-emerald-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정답입니다! 중심각이 2배(50°→100°)가 되었으므로 호의 길이도 2배가 되어 8cm입니다.';
+            } else {
+                feedback.classList.add('bg-rose-100', 'text-rose-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 다시 생각해보세요. 중심각 배율을 확인해보세요.';
+            }
+            submitResponse('1단계-문제1', input, isCorrect);
+        }
+
+        function checkT1Q2() {
+            const input = document.getElementById('t1-q2-input').value.trim();
+            const feedback = document.getElementById('t1-q2-feedback');
+            const isCorrect = parseInt(input, 10) === 36;
+
+            feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+            if (isCorrect) {
+                feedback.classList.add('bg-emerald-100', 'text-emerald-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정답입니다! 중심각이 4배(20°→80°)가 되었으므로 넓이도 4배(9×4=36)가 됩니다.';
+            } else {
+                feedback.classList.add('bg-rose-100', 'text-rose-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 다시 생각해보세요. 20°가 80°가 되었을 때의 배율을 곱해보세요.';
+            }
+            submitResponse('1단계-문제2', input, isCorrect);
+        }
+
+        function updateTab2() {
+            const r = parseFloat(document.getElementById('t2-radius').value);
+            const a = parseFloat(document.getElementById('t2-angle').value);
+
+            document.getElementById('t2-r-val').innerText = `${r} cm`;
+            document.getElementById('t2-a-val').innerText = `${a}°`;
+
+            const fullCirc = (2 * r).toFixed(0);
+            const fullArea = (r * r).toFixed(0);
+
+            document.getElementById('t2-s1-circ').innerText = `${fullCirc}π cm`;
+            document.getElementById('t2-s1-area').innerText = `${fullArea}π cm²`;
+
+            const gcdVal = gcd(a, 360);
+            const num = a / gcdVal;
+            const den = 360 / gcdVal;
+            document.getElementById('t2-frac-badge').innerText = `${a}° / 360° = ${num}/${den}`;
+            document.getElementById('t2-ratio-calc').innerText = `360° 중 ${a}° 차지 → 원 전체의 ${num}/${den}`;
+
+            const arcVal = (2 * r * (a / 360)).toFixed(2);
+            const areaVal = (r * r * (a / 360)).toFixed(2);
+
+            document.getElementById('t2-arc-final').innerText = `${arcVal}π cm`;
+            document.getElementById('t2-arc-formula').innerText = `${fullCirc}π × (${a}/360) = ${arcVal}π cm`;
+
+            document.getElementById('t2-area-final').innerText = `${areaVal}π cm²`;
+            document.getElementById('t2-area-formula').innerText = `${fullArea}π × (${a}/360) = ${areaVal}π cm²`;
+
+            drawTab2Canvas(r, a);
+        }
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function drawTab2Canvas(r, angle) {
+            const canvas = document.getElementById('canvasTab2');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            ctx.clearRect(0, 0, w, h);
+
+            const cx = w / 2;
+            const cy = h / 2;
+            const drawRadius = Math.min(w, h) * 0.38;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, drawRadius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.fill();
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            const startRad = -Math.PI / 2;
+            const endRad = startRad + (angle * Math.PI / 180);
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, drawRadius, startRad, endRad);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function checkT2Q1() {
+            const input = document.getElementById('t2-q1-input').value.trim();
+            const feedback = document.getElementById('t2-q1-feedback');
+            const isCorrect = parseInt(input, 10) === 24;
+
+            feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+            if (isCorrect) {
+                feedback.classList.add('bg-emerald-100', 'text-emerald-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정답입니다! S = ½ × r × l = ½ × 6 × 8 = 24 cm²';
+            } else {
+                feedback.classList.add('bg-rose-100', 'text-rose-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 다시 생각해보세요. ½ × 6 × 8 값은 얼마일까요?';
+            }
+            submitResponse('2단계-문제1', input, isCorrect);
+        }
+
+        function checkT2Q2() {
+            const input = document.getElementById('t2-q2-input').value.trim();
+            const feedback = document.getElementById('t2-q2-feedback');
+            const isCorrect = parseFloat(input) === 6;
+
+            feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+            if (isCorrect) {
+                feedback.classList.add('bg-emerald-100', 'text-emerald-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> 정답입니다! 15π = ½ × 5 × l × π 에서 l = 6π cm 입니다.';
+            } else {
+                feedback.classList.add('bg-rose-100', 'text-rose-800');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 다시 생각해보세요. 15 = 2.5 × l 의 방정식 해를 구해보세요.';
+            }
+            submitResponse('2단계-문제2', input, isCorrect);
+        }
+
+        function resetAndDrawTab3() {
+            if (tab3IsAnimating) toggleTab3Animation();
+            document.getElementById('t3-progress').value = 0;
+            document.getElementById('t3-progress-pct').innerText = '0';
+            drawTab3();
+        }
+
+        function toggleTab3Animation() {
+            const btnText = document.getElementById('t3-play-text');
+            const icon = document.getElementById('t3-play-icon');
+            const progressSlider = document.getElementById('t3-progress');
+
+            if (tab3IsAnimating) {
+                tab3IsAnimating = false;
+                cancelAnimationFrame(tab3AnimId);
+                btnText.innerText = '한 조각씩 날아가기 시작';
+                icon.className = 'fa-solid fa-play';
+            } else {
+                tab3IsAnimating = true;
+                btnText.innerText = '일시 정지';
+                icon.className = 'fa-solid fa-pause';
+
+                if (parseFloat(progressSlider.value) >= 100) progressSlider.value = 0;
+
+                function step() {
+                    if (!tab3IsAnimating) return;
+                    let val = parseFloat(progressSlider.value) + 0.5;
+                    if (val >= 100) {
+                        val = 100;
+                        progressSlider.value = val;
+                        document.getElementById('t3-progress-pct').innerText = '100';
+                        drawTab3();
+                        toggleTab3Animation();
+                        return;
+                    }
+                    progressSlider.value = val;
+                    document.getElementById('t3-progress-pct').innerText = Math.round(val);
+                    drawTab3();
+                    tab3AnimId = requestAnimationFrame(step);
+                }
+                tab3AnimId = requestAnimationFrame(step);
+            }
+        }
+
+        function drawTab3() {
+            const canvas = document.getElementById('canvasTab3');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            ctx.clearRect(0, 0, w, h);
+
+            const N = parseInt(document.getElementById('t3-slices').value, 10);
+            const progress = parseFloat(document.getElementById('t3-progress').value) / 100;
+            document.getElementById('t3-progress-pct').innerText = Math.round(progress * 100);
+
+            const sliceAngle = (120 * Math.PI / 180) / N;
+            const radiusDraw = Math.min(w, h) * 0.28;
+
+            const fanCx = w * 0.28;
+            const fanCy = h * 0.55;
+            const rectBaseX = w * 0.52;
+            const rectBaseY = h * 0.55;
+            const sliceWidth = radiusDraw * sliceAngle;
+
+            for (let i = 0; i < N; i++) {
+                const sliceStartP = i / N;
+                const sliceEndP = (i + 1) / N;
+                let p = (progress - sliceStartP) / (sliceEndP - sliceStartP);
+                p = Math.max(0, Math.min(1, p));
+
+                const startA = -Math.PI / 3 + i * sliceAngle;
+                const midA = startA + sliceAngle / 2;
+                const srcX = fanCx;
+                const srcY = fanCy;
+                const srcRot = midA;
+
+                const targetX = rectBaseX + i * (sliceWidth * 0.82);
+                const isEven = i % 2 === 0;
+                const targetY = isEven ? rectBaseY : rectBaseY - radiusDraw * 0.5;
+                const targetRot = isEven ? Math.PI / 2 : -Math.PI / 2;
+
+                const curX = srcX + (targetX - srcX) * p;
+                const curY = srcY + (targetY - srcY) * p;
+                const curRot = srcRot + (targetRot - srcRot) * p;
+
+                ctx.save();
+                ctx.translate(curX, curY);
+                ctx.rotate(curRot);
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radiusDraw, -sliceAngle / 2, sliceAngle / 2);
+                ctx.closePath();
+
+                const hue = (i * 360 / N) % 360;
+                ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.75)`;
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        async function submitResponse(quizId, answer, isCorrect) {
+            const nickname = document.getElementById('student-nickname').value.trim() || '무명 학생';
+            if (window.db && window.currentUser) {
+                try {
+                    const colRef = window.firestoreCollection(window.db, 'artifacts', window.appId, 'public', 'data', 'quiz_responses');
+                    await window.firestoreAddDoc(colRef, {
+                        nickname: nickname,
+                        quizId: quizId,
+                        answer: answer,
+                        isCorrect: isCorrect,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch (e) {
+                    console.log("Submit error:", e);
+                }
+            }
+        }
+
+        function fetchQuizResponses() {
+            if (!window.db) return;
+            try {
+                const colRef = window.firestoreCollection(window.db, 'artifacts', window.appId, 'public', 'data', 'quiz_responses');
+                window.firestoreOnSnapshot(colRef, (snapshot) => {
+                    const docs = [];
+                    snapshot.forEach(doc => docs.push(doc.data()));
+                    
+                    docs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    const tbody = document.getElementById('response-table-body');
+                    if (docs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-medium">아직 제출된 기록이 없습니다.</td></tr>';
+                        return;
+                    }
+
+                    document.getElementById('stat-total-submissions').innerText = `${docs.length} 건`;
+
+                    let t1Correct = 0, t1Count = 0;
+                    let t2Correct = 0, t2Count = 0;
+
+                    let html = '';
+                    docs.forEach(d => {
+                        if (d.quizId.includes('1단계')) {
+                            t1Count++;
+                            if (d.isCorrect) t1Correct++;
+                        } else if (d.quizId.includes('2단계')) {
+                            t2Count++;
+                            if (d.isCorrect) t2Correct++;
+                        }
+
+                        const statusTag = d.isCorrect 
+                            ? '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">정답 ⭕</span>'
+                            : '<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold">오답 ❌</span>';
+
+                        const dateStr = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '-';
+
+                        html += `<tr class="hover:bg-slate-50">
+                            <td class="p-3 font-bold text-slate-800">${escapeHtml(d.nickname)}</td>
+                            <td class="p-3 font-semibold text-slate-600">${escapeHtml(d.quizId)}</td>
+                            <td class="p-3 font-mono">${escapeHtml(d.answer)}</td>
+                            <td class="p-3">${statusTag}</td>
+                            <td class="p-3 text-slate-400 text-xs">${dateStr}</td>
+                        </tr>`;
+                    });
+
+                    tbody.innerHTML = html;
+
+                    document.getElementById('stat-t1-acc').innerText = t1Count > 0 ? `${Math.round((t1Correct / t1Count) * 100)}%` : '- %';
+                    document.getElementById('stat-t2-acc').innerText = t2Count > 0 ? `${Math.round((t2Correct / t2Count) * 100)}%` : '- %';
+                }, (err) => console.log(err));
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function openClassroomQRModal() {
+            const modal = document.getElementById('classroom-qr-modal');
+            const targetInput = document.getElementById('target-url-input');
+            let currentUrl = targetInput.value.trim();
+
+            if (!currentUrl) {
+                currentUrl = window.location.href;
+                if (!currentUrl || currentUrl.startsWith('about:') || currentUrl.startsWith('blob:') || currentUrl.includes('srcdoc')) {
+                    currentUrl = 'https://username.github.io/sector-math-app/';
+                }
+                targetInput.value = currentUrl;
+            }
+
+            updateBigQRCode(currentUrl);
+            modal.classList.remove('hidden');
+        }
+
+        function closeClassroomQRModal() {
+            document.getElementById('classroom-qr-modal').classList.add('hidden');
+        }
+
+        function updateBigQRCode(url) {
+            const img = document.getElementById('big-qr-img');
+            const encoded = encodeURIComponent(url);
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
+        }
+
+        function onTargetUrlChange() {
+            const url = document.getElementById('target-url-input').value.trim();
+            if (url) updateBigQRCode(url);
+        }
+
+        function copyTargetUrl() {
+            const input = document.getElementById('target-url-input');
+            input.select();
+            document.execCommand('copy');
+            const toast = document.getElementById('target-copy-toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+    </script>
+</body>
+</html>
